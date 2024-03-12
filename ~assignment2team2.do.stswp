@@ -76,11 +76,14 @@ scatter stresslevel Stress_original
 *********Inspect data, to get a first idea what is in there******************
 tab day timeonday				
 sum student day time timeonday sleepiness energylevel stresslevel happiness motivation						
-hist day, by(student) freq xtitle("Day of week")		// data looks a little strange, like people answered only in the first half or the second half of the dates. This could be due to the fact that we have data over multiple years, but this is something to keep in mind when further analyzing 
+hist day, by(student) freq xtitle("Day of week")		// data looks a little strange, like people answered only in the first half or the second half of the dates. This could be due to the fact that we have data over multiple years, but this is something to keep in mind when further analyzing
+ 
 scatter motivation time, by(student) connect(l) xtitle("Nr. of assessment") ytitle("Motivation")		// 
 
 //when you want to keep a graph on your screen - and not overwrite it as soon as you make another picture, write 'name(yournameforthegraph)' after the comma
 scatter energylevel time, by(student) connect(l) xtitle("Nr. of assessment") ytitle("Vitality (0=Depleted-10=Energetic)")
+
+scatter stresslevel time, by(student) connect(l) xtitle("Nr. of assessment") ytitle("Stress (low to high)")
 
 //graph twoway (scatter Stress timeonday if day==1, by(student) connect(l) xtitle("Nr. of assessment per day") ytitle("Stress (0=Relaxed-10=Tense)")) (scatter Stress timeonday if day==2, by(student) connect(l)) (scatter Stress timeonday if day==3, by(student) connect(l)) (scatter Stress timeonday if day==4, by(student) connect(l)) (scatter Stress timeonday if day==5, by(student) connect(l)), legend(label(1 Day 1) label(2 Day 2) label(3 Day 3) label(4 Day 4) label(5 Day 5))
 
