@@ -76,7 +76,7 @@ scatter stresslevel Stress_original
 *********Inspect data, to get a first idea what is in there******************
 tab day timeonday				
 sum student day time timeonday sleepiness energylevel stresslevel happiness motivation						
-hist day, by(student) freq xtitle("Day of week")		// data looks a little strange, like people answered only in the first half or the second half of the dates. This could be due to the fact that we have data over multiple years, but this is something to keep in mind when further analyzing
+hist day, by(student) freq xtitle("Day of week")		// Three distinct answering phases due to data from three different years, keep this in mind in further analysis
  
 scatter motivation time, by(student) connect(l) xtitle("Nr. of assessment") ytitle("Motivation")		// 
 
