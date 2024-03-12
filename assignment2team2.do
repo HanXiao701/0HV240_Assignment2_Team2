@@ -113,13 +113,13 @@ graph matrix sleepiness energy stress happy motivation, jitter(2) half 	//relati
 
 //unconditional model	
 mixed happy				//no clustering of the data
-estimates store unconditional_reg
-mixed happy || student:	//adding random intercept
-estimates store unconditional_mixed
-lrtest unconditional_reg unconditional_mixed // just to illustrate that this is the same value as provided in the results of the null model
+mixed happy || student:	//adding random intercept, p fo lr test < 0.05 so adding random intercept makes the model better
+
 estat icc 				//compute intra-class correlation
 predict residuals_unconditional_mixed, res	//store residuals
-swilk residuals_unconditional_mixed			//shapiro-wilk test to check normality of residuals
+swilk residuals_unconditional_mixed			//shapiro-wilk test to check normality of residuals, normality is rejected
+
+
 
 //now the conditional models
 //Group level (for which we actually know that this isn't the correct analyses, but let's run for illustrative purposes)
