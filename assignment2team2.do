@@ -52,16 +52,16 @@ replace motivation = "5" if motivation == "strongly motivated"
 destring motivation, replace
 tab motivation
 
-replace sleepiness = "1" if sleepiness == "Almost in reverie, sleep onset soon, lost struggle to remain awake" // different answers in previous years, so we have to do the same as before and recode two different answers to one number
-replace sleepiness = "1" if sleepiness == "Sleepiness, prefer to be lying down, fightine sleep, woozy"
-replace sleepiness = "1" if sleepiness == "Sleepy, woozy, struggling to sleep, prefer to lie down"
-replace sleepiness = "2" if sleepiness == "Fogginess, beginning to lose interest in remaining awake, slowed down"
-replace sleepiness = "3" if sleepiness == "A little fogy, not at peak, let down"
-replace sleepiness = "3" if sleepiness == "A little foggy, not at peak, let down" // typo in some responses but not all
-replace sleepiness = "4" if sleepiness == "Relaxed, awake, not at full alertness, responsive"
-replace sleepiness = "5" if sleepiness == "Functioning at high levels, but not at peak, able to concentrate"
-replace sleepiness = "6" if sleepiness == "Feeling active, vital, alert or wide awake"
-replace sleepiness = "6" if sleepiness == "Feeling active, vital, alert, or wide awake" // once again different spellings
+replace sleepiness = "6" if sleepiness == "Almost in reverie, sleep onset soon, lost struggle to remain awake" // different answers in previous years, so we have to do the same as before and recode two different answers to one number
+replace sleepiness = "6" if sleepiness == "Sleepiness, prefer to be lying down, fightine sleep, woozy"
+replace sleepiness = "6" if sleepiness == "Sleepy, woozy, struggling to sleep, prefer to lie down"
+replace sleepiness = "5" if sleepiness == "Fogginess, beginning to lose interest in remaining awake, slowed down"
+replace sleepiness = "4" if sleepiness == "A little fogy, not at peak, let down"
+replace sleepiness = "4" if sleepiness == "A little foggy, not at peak, let down" // typo in some responses but not all
+replace sleepiness = "3" if sleepiness == "Relaxed, awake, not at full alertness, responsive"
+replace sleepiness = "2" if sleepiness == "Functioning at high levels, but not at peak, able to concentrate"
+replace sleepiness = "1" if sleepiness == "Feeling active, vital, alert or wide awake"
+replace sleepiness = "1" if sleepiness == "Feeling active, vital, alert, or wide awake" // once again different spellings
 destring sleepiness, replace
 tab sleepiness
 
@@ -76,14 +76,14 @@ scatter stresslevel Stress_original
 *********Inspect data, to get a first idea what is in there******************
 tab day timeonday				
 sum student day time timeonday sleepiness energylevel stresslevel happiness motivation						
-hist day, by(student) freq xtitle("Day of week")		// Three distinct answering phases due to data from three different years, keep this in mind in further analysis
+//hist day, by(student) freq xtitle("Day of week")		// Three distinct answering phases due to data from three different years, keep this in mind in further analysis
  
-scatter motivation time, by(student) connect(l) xtitle("Nr. of assessment") ytitle("Motivation")		// 
+//scatter motivation time, by(student) connect(l) xtitle("Nr. of assessment") ytitle("Motivation")		// 
 
 //when you want to keep a graph on your screen - and not overwrite it as soon as you make another picture, write 'name(yournameforthegraph)' after the comma
-scatter energylevel time, by(student) connect(l) xtitle("Nr. of assessment") ytitle("Vitality (0=Depleted-10=Energetic)")
+//scatter energylevel time, by(student) connect(l) xtitle("Nr. of assessment") ytitle("Vitality (0=Depleted-10=Energetic)")
 
-scatter stresslevel time, by(student) connect(l) xtitle("Nr. of assessment") ytitle("Stress (low to high)")
+//scatter stresslevel time, by(student) connect(l) xtitle("Nr. of assessment") ytitle("Stress (low to high)")
 
 //graph twoway (scatter Stress timeonday if day==1, by(student) connect(l) xtitle("Nr. of assessment per day") ytitle("Stress (0=Relaxed-10=Tense)")) (scatter Stress timeonday if day==2, by(student) connect(l)) (scatter Stress timeonday if day==3, by(student) connect(l)) (scatter Stress timeonday if day==4, by(student) connect(l)) (scatter Stress timeonday if day==5, by(student) connect(l)), legend(label(1 Day 1) label(2 Day 2) label(3 Day 3) label(4 Day 4) label(5 Day 5))
 
@@ -100,21 +100,21 @@ egen happy=std(happiness)
 egen motivationstd=std(motivation)
 summarize 
 
-*pwcorr sleepiness energy stress happy motivation, sig star(0.05)	//you can use this command to compute the correlations (but note: our data is nested..)
-*scatter sleepiness energy	 										//example of relation
-graph matrix sleepiness energy stress happy motivation, jitter(2) half 	//to create all scatterplots of all possible pairs
+pwcorr sleepy energy stress happy motivationstd, sig star(0.05)	//you can use this command to compute the correlations (but note: our data is nested..)
+// All makes sense now!
+
+graph matrix sleepiness energy stress happy motivation, jitter(2) half 	//relations that we can see make sense, but there could be individual differences. E.g. some people are more motivated by stress to do something about their situation, while stress could paralyze others
+
 
 
 *********Analysis of the data***************************************************
-
-*Pick two variables, e.g.,
-//HAPPY & STRESS
+// Energy and happiness --> because you can also feel tired and happy, but there is a positive correlation: could be interesting to look at within/between differences
 
 
-//unconditional model	//clustering of the data needed? --> let's test with a model without fixed part (i.e., without predictors)
-mixed Happy				//no clustering of the data
+//unconditional model	
+mixed happy				//no clustering of the data
 estimates store unconditional_reg
-mixed Happy || student:	//adding random intercept
+mixed happy || student:	//adding random intercept
 estimates store unconditional_mixed
 lrtest unconditional_reg unconditional_mixed // just to illustrate that this is the same value as provided in the results of the null model
 estat icc 				//compute intra-class correlation
