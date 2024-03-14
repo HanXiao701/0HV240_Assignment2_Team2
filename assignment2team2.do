@@ -36,7 +36,7 @@ sort student day
 by student: gen time=_n			 //Generates a number for the n-th measurement per student
 by student day: gen timeonday=_n //Generates a number for the n-th measurement per student on a specific day
 *Run the following line (delete the *) to browse the data and check if it worked as planned, and make sure you understand what the variables comprise. 
-browse student Date_submitted Date Time day time timeonday 
+*browse student Date_submitted Date Time day time timeonday 
 
 drop if Date_submitted == "" 	//drop the missing values
 
