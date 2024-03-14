@@ -73,9 +73,21 @@ rename stresslevel Stress_original
 gen stresslevel = 100-Stress_original
 scatter stresslevel Stress_original
 
+*Checking timeoutdoors
+tab timeoutdoors // there are four instances where a value is non numerical, "0 (no light)", ",15", "20 minutes", "p".to change this variable into a continouus variable all comma's need to be deleted, the p needs to be transformed into a missing value, and next, as there are no numbers which take up more than 2 spaces we can make a substring with the first two characters and destring the variable. The code can be found below:
+
+gen temptimeoutdoors = timeoutdoors
+replace timeoutdoors = "15" if timeoutdoors == ",15"
+replace timeoutdoors = "" if timeoutdoors == "p"
+replace timeoutdoors = substr(timeoutdoors,1,2)
+destring timeoutdoors, replace
+fre timeoutdoors
+fre temptimeoutdoors // everything seems fine
+
+drop temptimeoutdoors
 *********Inspect data, to get a first idea what is in there******************
 tab day timeonday				
-sum student day time timeonday sleepiness energylevel stresslevel happiness motivation						
+sum student day time timeonday sleepiness energylevel stresslevel happiness motivation timeoutdoors						
 hist day, by(student) freq xtitle("Day of week")		// data looks a little strange, like people answered only in the first half or the second half of the dates. This could be due to the fact that we have data over multiple years, but this is something to keep in mind when further analyzing 
 scatter motivation time, by(student) connect(l) xtitle("Nr. of assessment") ytitle("Motivation")		// 
 
@@ -95,11 +107,12 @@ egen energy=std(energylevel)
 egen stress=std(stresslevel)
 egen happy=std(happiness)
 egen motivationstd=std(motivation)
+egen timeoutd = std(timeoutdoors)
 summarize 
 
 *pwcorr sleepiness energy stress happy motivation, sig star(0.05)	//you can use this command to compute the correlations (but note: our data is nested..)
 *scatter sleepiness energy	 										//example of relation
-graph matrix sleepiness energy stress happy motivation, jitter(2) half 	//to create all scatterplots of all possible pairs
+graph matrix sleepiness energy stress happy motivation timeoutd, jitter(2) half 	//to create all scatterplots of all possible pairs
 
 
 *********Analysis of the data***************************************************
