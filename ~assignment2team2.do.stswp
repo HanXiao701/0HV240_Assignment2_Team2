@@ -5,7 +5,7 @@ use "Data_2024.dta" , replace
 								
 
 *Let's see what we've got:
-summarize 						
+*summarize 						
 *Not all is relevant for us now, so let's select what we need:
 keep Date_submitted Participant_ID Sleepiness Energetic_sliderNegPos Stress_sliderNegPos Happy_smiley Motivation TimeOutdoors 
 *********Transformation of the data, to make it convenient to use***************
@@ -69,9 +69,10 @@ tab sleepiness
 sum energylevel
 tab energylevel // nothing weird to see here
 
+* stresslevel should be inverted otherwise it doesn't make sense, since 100 now means someone is extremely calm
 rename stresslevel Stress_original
 gen stresslevel = 100-Stress_original
-scatter stresslevel Stress_original
+*scatter stresslevel Stress_original
 
 *********Inspect data, to get a first idea what is in there******************
 tab day timeonday				
@@ -123,8 +124,8 @@ swilk residuals_unconditional_mixed			//shapiro-wilk test to check normality of 
 
 //now the conditional models
 //Group level (for which we actually know that this isn't the correct analyses, but let's run for illustrative purposes)
-reg Happy Stress
-mixed Happy Stress		//This comes down to a normal regression, but to compare the likelihoods later on, we need a mixed command here.
+reg happy energylevel
+mixed happy energylevel	//This comes down to a normal regression, but to compare the likelihoods later on, we need a mixed command here.
 estimates store A
 
 //corresponding graphs
@@ -133,7 +134,7 @@ estimates store A
 
 
 //Random intercept model
-mixed Happy Stress	 || student:
+mixed happy energylevel	 || student:
 estimates store B
 predict residuals_B, res	//store residuals
 swilk residuals_B			//shapiro-wilk test to check normality of residuals
@@ -143,13 +144,13 @@ predict pred_cons_student, reffect relevel(student)								//store prediction of
 gen zero = 0
 twoway  (rspike zero pred_cons_student student, horizontal) (scatter student pred_cons_student, msize(1) mlabsize(1) mlabposition(0)) if time==1, xtitle("Deviation from overall intercept") legend(off)
 
-gen pred_Stress=(pred_cons_student+_b[Happy:_cons])+_b[Happy:Stress]*Stress	//finish modelprediction by combining coefficients with estimations
-scatter Happy pred_Stress Stress, by(student,legend(off)) jitter(2) connect(. l) ytitle("Happy")  //make graph of both data and model prediction
+gen pred_energy=(pred_cons_student+_b[happy:_cons])+_b[happy:energylevel]*energylevel	//finish modelprediction by combining coefficients with estimations
+scatter happy pred_energy energylevel, by(student,legend(off)) jitter(2) connect(. l) ytitle("Happy")  //make graph of both data and model prediction
 drop pred*																		//if you don't drop all predictions, Stata will give you errors when you want to make another model prediction
 
 
 //Random slope model
-mixed Happy Stress	 || student:Stress
+mixed happy energylevel	 || student:energylevel
 estimates store C
 predict residuals_C, res	//store residuals
 swilk residuals_C			//shapiro-wilk test to check normality of residuals
