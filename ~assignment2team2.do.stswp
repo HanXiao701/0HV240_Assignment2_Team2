@@ -19,13 +19,20 @@ rename TimeOutdoors timeoutdoors
 label variable student "Participant ID"  
 
 tab student // lots of high numbers give problems with graphs later on, so we want to recode this variable
-// Also there are some people that barely answered any questions, so we might need to think about deleting some 
-
-
+// Also there are some people that barely answered any questions, so we might need to think about deleting some
 
 *We will create seperate date / time variables first:
 gen Date = substr(Date_submitted,1,10)
 gen Time = substr(Date_submitted,12,8)
+
+tab Date if student == 136569
+drop if student == 136569
+
+tab Date if student == 233885
+drop if student == 233885
+
+tab Date if student == 325430 
+drop if student == 325430 
 
 * Now we want to make variables for the order of the measurements: a variable for 
 * the n-th measurement per student, lets call it [time], a number for the n-th
