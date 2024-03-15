@@ -18,6 +18,11 @@ rename Motivation motivation
 rename TimeOutdoors timeoutdoors	
 label variable student "Participant ID"  
 
+tab student // lots of high numbers give problems with graphs later on, so we want to recode this variable
+// Also there are some people that barely answered any questions, so we might need to think about deleting some 
+
+
+
 *We will create seperate date / time variables first:
 gen Date = substr(Date_submitted,1,10)
 gen Time = substr(Date_submitted,12,8)
@@ -36,7 +41,6 @@ sort student day
 by student: gen time=_n			 //Generates a number for the n-th measurement per student
 by student day: gen timeonday=_n //Generates a number for the n-th measurement per student on a specific day
 *Run the following line (delete the *) to browse the data and check if it worked as planned, and make sure you understand what the variables comprise. 
-browse student Date_submitted Date Time day time timeonday 
 
 drop if Date_submitted == "" 	//drop the missing values
 
@@ -113,112 +117,101 @@ graph matrix sleepiness energy stress happy motivation, jitter(2) half 	//relati
 
 
 //unconditional model	
-mixed happy				//no clustering of the data
-mixed happy || student:	//adding random intercept, p fo lr test < 0.05 so adding random intercept makes the model better
+mixed happiness				//no clustering of the data
+mixed happiness || student:	//adding random intercept, p fo lr test < 0.05 so adding random intercept makes the model better
 
 estat icc 				//compute intra-class correlation
 predict residuals_unconditional_mixed, res	//store residuals
 swilk residuals_unconditional_mixed			//shapiro-wilk test to check normality of residuals, normality is rejected
 
 
-
 //now the conditional models
 //Group level (for which we actually know that this isn't the correct analyses, but let's run for illustrative purposes)
-reg happy energylevel
-mixed happy energylevel	//This comes down to a normal regression, but to compare the likelihoods later on, we need a mixed command here.
+*reg happy energylevel
+mixed happiness energylevel	// Both p<0.05
 estimates store A
 
 //corresponding graphs
-*scatter Happy Stress
-*scatter Happy Stress || lfit Happy Stress 
+scatter happiness energylevel
+scatter happiness energylevel || lfit happiness energylevel
 
 
 //Random intercept model
-mixed happy energylevel	 || student:
+mixed happiness energylevel	 || student:
 estimates store B
 predict residuals_B, res	//store residuals
 swilk residuals_B			//shapiro-wilk test to check normality of residuals
-//corresponding graphs
+//corresponding graphs > normality is rejected
 predict pred_cons_student, reffect relevel(student)								//store prediction of model, to plot it later in scatterplot
 //plot intercepts deviation across participants
 gen zero = 0
-twoway  (rspike zero pred_cons_student student, horizontal) (scatter student pred_cons_student, msize(1) mlabsize(1) mlabposition(0)) if time==1, xtitle("Deviation from overall intercept") legend(off)
+twoway  (rspike zero pred_cons_student student, horizontal) (scatter student pred_cons_student, msize(1) mlabsize(1) mlabposition(0)) if time==1, xtitle("Deviation from overall intercept") legend(off) // studentnr instead of student
 
-gen pred_energy=(pred_cons_student+_b[happy:_cons])+_b[happy:energylevel]*energylevel	//finish modelprediction by combining coefficients with estimations
-scatter happy pred_energy energylevel, by(student,legend(off)) jitter(2) connect(. l) ytitle("Happy")  //make graph of both data and model prediction
+gen pred_energy=(pred_cons_student+_b[happiness:_cons])+_b[happiness:energylevel]*energylevel	//finish modelprediction by combining coefficients with estimations
+scatter happiness pred_energy energylevel, by(student,legend(off)) jitter(2) connect(. l) ytitle("Happy")  //make graph of both data and model prediction
 drop pred*																		//if you don't drop all predictions, Stata will give you errors when you want to make another model prediction
 
 
 //Random slope model
-mixed happy energylevel	 || student:energylevel
+mixed happiness energylevel	 || student:energylevel // p<0.05 so a random slope does make sense
 estimates store C
 predict residuals_C, res	//store residuals
-swilk residuals_C			//shapiro-wilk test to check normality of residuals
+swilk residuals_C			// normality is again rejected
 
 //corresponding graphs
 predict pred_slope_student pred_cons_student, reffect relevel(student)			//store prediction of model, to plot it later in scatterplot
 //plot slope deviation across participants
 twoway  (rspike zero pred_slope_student student, horizontal) (scatter student pred_slope_student, msize(1) mlabsize(1) mlabposition(0)) if time==1, xtitle("Deviation from fixed slope") legend(off)
 
-gen pred_Stress= (pred_cons_student+_b[Happy:_cons])+(pred_slope_student+_b[Happy:Stress])*Stress //finish modelprediction by combining coefficients with estimations, a bit more complex than in the random intercept model
-scatter Happy pred_Stress Stress, by(student,legend(off)) jitter(2) connect(. l) ytitle("Happy") //make graph of both data and model prediction
+gen pred_energy= (pred_cons_student+_b[happiness:_cons])+(pred_slope_student+_b[happiness:energylevel])*energylevel //finish modelprediction by combining coefficients with estimations, a bit more complex than in the random intercept model
+scatter happiness pred_energy energylevel, by(student,legend(off)) jitter(2) connect(. l) ytitle("Happy") //make graph of both data and model prediction
 drop pred* 														//drop again
 
 
 //Likelihoodratio test
-lrtest A B
-lrtest B C
+lrtest A B // random intercept is better since p<0.05
+lrtest B C // random slope and random intercept is better since p<0.05
+
 
 
 **2-level or 3-level model? //note that the data could also be described as a 3-level model, which we ignored so far
 
 //to test this, we will use unconditional models (also called null models)
-mixed Happy || student:						//2-level model
+mixed happiness || student:						//2-level model
 estimates store nullModel_2level
-mixed Happy || student: ||day:				//3-level model
+mixed happiness || student: ||day:				//3-level model
 estimates store nullModel_3level
 lrtest nullModel_2level nullModel_3level
-
+// suggests that it is better to use a three level model since p<0.05
 
 **we also ignored the centering of the variables. For this, you can either grand-mean or group-mean centering. The first refers to centering all scores around the overall mean, and group-mean centering refers to centering around the cluster mean (i.e., the person's average score)
 
 
 **grand-mean center scores --> compute deviations from the overall mean
-egen Sleepiness_GrandMean = mean(Sleepiness)
-egen Energy_GrandMean = mean(Energy)
-egen Stress_GrandMean = mean(Stress)
-egen Happy_GrandMean = mean(Happy)
-egen Motivation_GrandMean = mean(Motivation)
+egen Energy_GrandMean = mean(energylevel)
+egen Happy_GrandMean = mean(happiness)
 
 //grand-mean center observations by extracting grand mean from each observation
-gen Sleepiness_GMC = Sleepiness-Sleepiness_GrandMean
-gen Energy_GMC= Energy-Energy_GrandMean
-gen Stress_GMC= Stress-Stress_GrandMean
-gen Happy_GMC= Happy-Happy_GrandMean
-gen Motivation_GMC= Motivation-Motivation_GrandMean
+gen Energy_GMC= energylevel-Energy_GrandMean
+gen Happy_GMC= happiness-Happy_GrandMean
 
-//now run the models with the grand-mean scores for stress as predictorv (note that we don't use the grand-mean score for the outcome parameter. Why?)
-mixed Happy Stress_GMC || student: ||day:				//random intercepts for student and day (nested in student)
+//now run the models with the grand-mean scores for energy as predictor (note that we don't use the grand-mean score for the outcome parameter. Why?)
+mixed happiness Energy_GMC || student: ||day:				//random intercepts for student and day (nested in student)
 predict residuals_D, res	//store residuals
 swilk residuals_D			//shapiro-wilk test to check normality of residuals
 
-mixed Happy Stress_GMC || student:Stress_GMC ||day:		//random intercepts + random slope (at participant level --> to what extent do the slopes vary across participants?)
+mixed happiness Energy_GMC || student:Energy_GMC ||day:		//random intercepts + random slope (at participant level --> to what extent do the slopes vary across participants?)
 predict residuals_E, res	//store residuals
 swilk residuals_E			//shapiro-wilk test to check normality of residuals
 
 **cluster-mean center scores
 //compute averages per student
-bysort student: egen Sleepiness_ClusterMean = mean(Sleepiness)
-bysort student: egen Energy_ClusterMean = mean(Energy)
-bysort student: egen Stress_ClusterMean = mean(Stress)
-bysort student: egen Happy_ClusterMean = mean(Happy)
-bysort student: egen Motivation_ClusterMean = mean(Motivation)
+bysort student: egen Energy_ClusterMean = mean(energylevel)
+bysort student: egen Happy_ClusterMean = mean(happiness)
 //compute cluster-mean centered scores by extracting students' mean values from the raw scores --> compute deviations from the person's mean
-gen Sleepiness_CMC = Sleepiness - Sleepiness_ClusterMean
-gen Energy_CMC = Energy - Energy_ClusterMean
-gen Stress_CMC = Stress - Stress_ClusterMean
-gen Happy_CMC = Happy - Happy_ClusterMean
-gen Motivation_CMC = Motivation - Motivation_ClusterMean
+gen Energy_CMC = energylevel - Energy_ClusterMean
+gen Happy_CMC = happiness - Happy_ClusterMean
+
 
 //center cluster mean scores by extracting grand mean from each students cluster mean
 gen Sleepiness_ClusterMean_centered = Sleepiness_ClusterMean-Sleepiness_GrandMean
