@@ -144,11 +144,11 @@ swilk residuals_B			//shapiro-wilk test to check normality of residuals
 predict pred_cons_student, reffect relevel(student)								
 //plot intercepts deviation across participants
 gen zero = 0
-twoway  (rspike zero pred_cons_student studentnr, horizontal) (scatter studentnr pred_cons_student, msize(1) mlabsize(1) mlabposition(0)) if time==1, xtitle("Deviation from overall intercept") legend(off) // studentnr instead of student so there are no overlaps due to high numbers for participant ID
+twoway  (rspike zero pred_cons_student studentnr, horizontal) (scatter studentnr pred_cons_student, msize(1) mlabsize(1) mlabposition(0)) if time==1, xtitle("Deviation from overall intercept") ytitle("Student number") legend(off) // studentnr instead of student so there are no overlaps due to high numbers for participant ID
 
 
 gen pred_energy=(pred_cons_student+_b[happiness:_cons])+_b[happiness:energylevel]*energylevel	//finish modelprediction by combining coefficients with estimations
-scatter happiness pred_energy energylevel, by(student,legend(off)) jitter(2) connect(. l) ytitle("Happy")  //make graph of both data and model prediction, looks pretty good at first inspection
+scatter happiness pred_energy energylevel, by(student,legend(off)) jitter(2) connect(. l) ytitle("Happiness")  //make graph of both data and model prediction, looks pretty good at first inspection
 drop pred*	
 
 
@@ -160,10 +160,10 @@ swilk residuals_C			// normality is again rejected
 
 predict pred_slope_student pred_cons_student, reffect relevel(student)			//store prediction of model, to plot it later in scatterplot
 //plot slope deviation across participants
-twoway  (rspike zero pred_slope_student studentnr, horizontal) (scatter studentnr pred_slope_student, msize(1) mlabsize(1) mlabposition(0)) if time==1, xtitle("Deviation from fixed slope") legend(off)
+twoway  (rspike zero pred_slope_student studentnr, horizontal) (scatter studentnr pred_slope_student, msize(1) mlabsize(1) mlabposition(0)) if time==1, xtitle("Deviation from fixed slope") ytitle("Student number") legend(off)
 
 gen pred_energy= (pred_cons_student+_b[happiness:_cons])+(pred_slope_student+_b[happiness:energylevel])*energylevel //finish modelprediction by combining coefficients with estimations, a bit more complex than in the random intercept model
-scatter happiness pred_energy energylevel, by(student,legend(off)) jitter(2) connect(. l) ytitle("Happy") //make graph of both data and model prediction
+scatter happiness pred_energy energylevel, by(student,legend(off)) jitter(2) connect(. l) ytitle("Happiness") //make graph of both data and model prediction
 drop pred* 										
 
 
@@ -182,6 +182,8 @@ estimates store nullModel_3level
 lrtest nullModel_2level nullModel_3level
 // suggests that it is better to use a three level model since p<0.05. This makes sense intuitively speaking since happiness and energy levels can differ significantly between days (just basing off our own experiences)
 
+// run again with 3 levels:
+mixed happiness energylevel || student: ||day:	
 
 
 
@@ -257,21 +259,27 @@ swilk residuals_G			// normality is rejected
 
 
 *** Student 1 
-scatter happiness energylevel if student==325370
+scatter happiness energylevel if student==325370   || lfit happiness energylevel
+
+tab happiness if student==325370
+sum happiness energylevel if student==325370
+tab energylevel if student==325370
+
 // Run a 'naive' regression model first
 reg happiness energylevel if student==325370 // R squared of 0.2160 which means about 22% of variation is explained by energylevel  
 mixed happiness energylevel if student==325370 
-// There is a slight positive correlation between energylevel and happiness overall for this student (p=0.002) meaning that the more energy they have, the happier they are. 1 point extra energy leads to 0.39 points extra happiness.
+// There is a slight positive correlation between energylevel and happiness overall for this student (p=0.002) meaning that the more energy they have, the happier they are. 1 point extra energy leads to 0.39 points extra happiness, so that is a little less than the group average (0.46)
 estimates store A1
 
 mixed happiness energylevel || day: if student==325370 
+
 estimates store B1
 predict residuals_B1, res
 swilk residuals_B1 // normality rejected
 
 lrtest A1 B1 // p>0.05 as we saw before so it does not make sense to add the extra level of day for this student. 
 
-scatter happiness energylevel if student==325370   || lfit happiness energylevel
+
 
 mixed happiness Energy_CMC if student==325370 
 mixed happiness Energy_ClusterMean_centered if student==325370 
