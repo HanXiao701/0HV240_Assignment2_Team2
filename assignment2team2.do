@@ -334,7 +334,6 @@ swilk residuals_B1 // normality rejected
 lrtest A1 B1 // p>0.05 as we saw before so it does not make sense to add the extra level of day for this student. 
 
 
-
 mixed happiness Energy_CMC if student==325370 
 mixed happiness Energy_ClusterMean_centered if student==325370 
 
@@ -360,27 +359,10 @@ mixed happiness Energy_ClusterMean_centered if student==325370
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-=======
 mixed Happy Stress_CMC Stress_ClusterMean_centered|| student:Stress_CMC || day:	//random intercepts + random slope (at participant level --> to what extent do the slopes vary across participants?)
 predict residuals_G, res	//store residuals
 swilk residuals_G			//shapiro-wilk test to check normality of residuals
->>>>>>> a08b24299aa3f7b4ccde1845e1d286968463dc65
+// Not sure if any of this makes sense
 
 
 
