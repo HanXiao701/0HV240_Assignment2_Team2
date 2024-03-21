@@ -168,20 +168,20 @@ swilk residuals_B			//shapiro-wilk test to check normality of residuals
 predict pred_cons_student, reffect relevel(student)								//store prediction of model, to plot it later in scatterplot
 //plot intercepts deviation across participants
 gen zero = 0
-<<<<<<< HEAD
+
 twoway  (rspike zero pred_cons_student studentnr, horizontal) (scatter studentnr pred_cons_student, msize(1) mlabsize(1) mlabposition(0)) if time==1, xtitle("Deviation from overall intercept") ytitle("Student number") legend(off) // studentnr instead of student so there are no overlaps due to high numbers for participant ID
 
 
 gen pred_energy=(pred_cons_student+_b[happiness:_cons])+_b[happiness:energylevel]*energylevel	//finish modelprediction by combining coefficients with estimations
 scatter happiness pred_energy energylevel, by(student,legend(off)) jitter(2) connect(. l) ytitle("Happiness")  //make graph of both data and model prediction, looks pretty good at first inspection
 drop pred*	
-=======
+
 twoway  (rspike zero pred_cons_student student, horizontal) (scatter student pred_cons_student, msize(1) mlabsize(1) mlabposition(0)) if time==1, xtitle("Deviation from overall intercept") legend(off) // studentnr instead of student
 
 gen pred_energy=(pred_cons_student+_b[happiness:_cons])+_b[happiness:energylevel]*energylevel	//finish modelprediction by combining coefficients with estimations
 scatter happiness pred_energy energylevel, by(student,legend(off)) jitter(2) connect(. l) ytitle("Happy")  //make graph of both data and model prediction
 drop pred*																		//if you don't drop all predictions, Stata will give you errors when you want to make another model prediction
->>>>>>> a08b24299aa3f7b4ccde1845e1d286968463dc65
+
 
 
 //Random slope model
@@ -193,19 +193,18 @@ swilk residuals_C			// normality is again rejected
 //corresponding graphs
 predict pred_slope_student pred_cons_student, reffect relevel(student)			//store prediction of model, to plot it later in scatterplot
 //plot slope deviation across participants
-<<<<<<< HEAD
+
 twoway  (rspike zero pred_slope_student studentnr, horizontal) (scatter studentnr pred_slope_student, msize(1) mlabsize(1) mlabposition(0)) if time==1, xtitle("Deviation from fixed slope") ytitle("Student number") legend(off)
 
 gen pred_energy= (pred_cons_student+_b[happiness:_cons])+(pred_slope_student+_b[happiness:energylevel])*energylevel //finish modelprediction by combining coefficients with estimations, a bit more complex than in the random intercept model
 scatter happiness pred_energy energylevel, by(student,legend(off)) jitter(2) connect(. l) ytitle("Happiness") //make graph of both data and model prediction
 drop pred* 										
-=======
 twoway  (rspike zero pred_slope_student student, horizontal) (scatter student pred_slope_student, msize(1) mlabsize(1) mlabposition(0)) if time==1, xtitle("Deviation from fixed slope") legend(off)
 
 gen pred_energy= (pred_cons_student+_b[happiness:_cons])+(pred_slope_student+_b[happiness:energylevel])*energylevel //finish modelprediction by combining coefficients with estimations, a bit more complex than in the random intercept model
 scatter happiness pred_energy energylevel, by(student,legend(off)) jitter(2) connect(. l) ytitle("Happy") //make graph of both data and model prediction
 drop pred* 														//drop again
->>>>>>> a08b24299aa3f7b4ccde1845e1d286968463dc65
+
 
 
 //Likelihoodratio test
@@ -222,18 +221,12 @@ estimates store nullModel_2level
 mixed happiness || student: ||day:				//3-level model
 estimates store nullModel_3level
 lrtest nullModel_2level nullModel_3level
-<<<<<<< HEAD
+
 // suggests that it is better to use a three level model since p<0.05. This makes sense intuitively speaking since happiness and energy levels can differ significantly between days (just basing off our own experiences)
 
 // run again with 3 levels:
 mixed happiness energylevel || student: ||day:	
-
-
-=======
 // suggests that it is better to use a three level model since p<0.05
->>>>>>> a08b24299aa3f7b4ccde1845e1d286968463dc65
-
-**we also ignored the centering of the variables. For this, you can either grand-mean or group-mean centering. The first refers to centering all scores around the overall mean, and group-mean centering refers to centering around the cluster mean (i.e., the person's average score)
 
 
 **grand-mean center scores --> compute deviations from the overall mean
@@ -273,7 +266,7 @@ mixed Happy Stress_CMC Stress_ClusterMean_centered || student: || day:			//rando
 predict residuals_F, res	//store residuals
 swilk residuals_F			//shapiro-wilk test to check normality of residuals
 
-<<<<<<< HEAD
+
 mixed happiness Energy_CMC Energy_ClusterMean_centered || student: || day:			//random intercepts for student and day (nested in student). p<0.05
 predict residuals_F, res	
 swilk residuals_F			// normality is rejected
@@ -285,32 +278,6 @@ swilk residuals_G			// normality is rejected
 
 
 *** Now for part B, look at our own data***
-// Explanation of the variables we have created before, just for an overview >> delete before we hand in this file!!! 
-// these are the means of the entire student population and all observations > not super useful for individual observations, I think
-// Energy_GrandMean
-// Happy_GrandMean
-
-*** How much does the person's score differ from the overall mean at any given time? 
-//Energy_CMC
-//Happy_CMC 
-
-*** student mean - total mean 
-//Energy_ClusterMean_centered 
-//Happy_ClusterMean_centered
-
-
-// The analyses we have run before on the group level
-/// mixed happiness Energy_GMC || student: ||day:				//random intercepts for student and day (nested in student)
-
-///mixed happiness Energy_GMC || student:Energy_GMC ||day:		//random intercepts + random slope (at participant level)
-
-
-//mixed happiness Energy_CMC Energy_ClusterMean_centered || student: || day:			//random intercepts for student and day (nested in student). p<0.05
-
-//mixed happiness Energy_CMC Energy_ClusterMean_centered|| student:Energy_CMC || day:	
-
-
-
 
 *** Student 1 
 scatter happiness energylevel if student==325370   || lfit happiness energylevel
