@@ -169,7 +169,7 @@ predict pred_cons_student, reffect relevel(student)								//store prediction of
 //plot intercepts deviation across participants
 gen zero = 0
 
-twoway  (rspike zero pred_cons_student studentnr, horizontal) (scatter studentnr pred_cons_student, msize(1) mlabsize(1) mlabposition(0)) if time==1, xtitle("Deviation from overall intercept") ytitle("Student number") legend(off) // studentnr instead of student so there are no overlaps due to high numbers for participant ID
+//twoway  (rspike zero pred_cons_student studentnr, horizontal) (scatter studentnr pred_cons_student, msize(1) mlabsize(1) mlabposition(0)) if time==1, xtitle("Deviation from overall intercept") ytitle("Student number") legend(off) // studentnr instead of student so there are no overlaps due to high numbers for participant ID
 
 
 gen pred_energy=(pred_cons_student+_b[happiness:_cons])+_b[happiness:energylevel]*energylevel	//finish modelprediction by combining coefficients with estimations
@@ -320,7 +320,38 @@ mixed happiness Energy_ClusterMean_centered if student==325370
 
 
 
-*** Student 3
+*** Student 3 325373
+//visualisation
+scatter happiness energylevel if student == 325373 || lfit happiness energylevel
+// Positive relation accoriding to the scatterplot
+
+//exploratory analysis vars happiness and energylevel for specific student 3225737
+tab happiness day if student == 325373 // no odd values 5-8 responses/day  range[8,75]
+tab energylevel day if student == 325373 // no odd values 5-8 responses/day range [18,67]
+sum happiness energylevel if student == 325373
+// happiness mean of 54.06 sd 16.7, energylevel mean of 45.41 sd 13.72
+//lower compared to average student/participant values.
+sum happiness energylevel
+
+//Run mixed model without clustering.
+mixed happiness energylevel if student == 325373
+estimates store CA
+predict residuals_CA, res
+swilk residuals_CA //normality of the residuals is rejected
+
+// Mixed models with clustering on day and timeonday.
+mixed happiness energylevel || day: if student == 325373
+
+estimates store CB
+predict residuals_CB, res
+swilk residuals_CB //normality of the residuals is rejected.
+
+mixed happiness energylevel || timeonday: if student == 325373
+//automatic lrtest show no improvement compared to normal regression model. It does not make sense to analize this participant on more than one level.
+
+
+
+lrtest CA CB //Neither model is better than one another.
 
 
 
