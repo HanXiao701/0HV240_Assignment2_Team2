@@ -48,7 +48,7 @@ sort student day
 by student: gen time=_n			 //Generates a number for the n-th measurement per student
 by student day: gen timeonday=_n //Generates a number for the n-th measurement per student on a specific day
 *Run the following line (delete the *) to browse the data and check if it worked as planned, and make sure you understand what the variables comprise. 
-
+by student: gen studentnr =_n //gen variable for visualisations.
 drop if Date_submitted == "" 	//drop the missing values
 
 *Now we will check the dependent variables one by one and see if they make sense to us:
@@ -169,14 +169,14 @@ predict pred_cons_student, reffect relevel(student)								//store prediction of
 //plot intercepts deviation across participants
 gen zero = 0
 
-//twoway  (rspike zero pred_cons_student studentnr, horizontal) (scatter studentnr pred_cons_student, msize(1) mlabsize(1) mlabposition(0)) if time==1, xtitle("Deviation from overall intercept") ytitle("Student number") legend(off) // studentnr instead of student so there are no overlaps due to high numbers for participant ID
+twoway  (rspike zero pred_cons_student studentnr, horizontal) (scatter studentnr pred_cons_student, msize(1) mlabsize(1) mlabposition(0)) if time==1, xtitle("Deviation from overall intercept") ytitle("Student number") legend(off) // studentnr instead of student so there are no overlaps due to high numbers for participant ID
 
 
 gen pred_energy=(pred_cons_student+_b[happiness:_cons])+_b[happiness:energylevel]*energylevel	//finish modelprediction by combining coefficients with estimations
 scatter happiness pred_energy energylevel, by(student,legend(off)) jitter(2) connect(. l) ytitle("Happiness")  //make graph of both data and model prediction, looks pretty good at first inspection
-drop pred*	
+drop pred_energy	
 
-twoway  (rspike zero pred_cons_student student, horizontal) (scatter student pred_cons_student, msize(1) mlabsize(1) mlabposition(0)) if time==1, xtitle("Deviation from overall intercept") legend(off) // studentnr instead of student
+//twoway  (rspike zero pred_cons_student student, horizontal) (scatter student pred_cons_student, msize(1) mlabsize(1) mlabposition(0)) if time==1, xtitle("Deviation from overall intercept") legend(off) // studentnr instead of student
 
 gen pred_energy=(pred_cons_student+_b[happiness:_cons])+_b[happiness:energylevel]*energylevel	//finish modelprediction by combining coefficients with estimations
 scatter happiness pred_energy energylevel, by(student,legend(off)) jitter(2) connect(. l) ytitle("Happy")  //make graph of both data and model prediction
@@ -198,7 +198,7 @@ twoway  (rspike zero pred_slope_student studentnr, horizontal) (scatter studentn
 
 gen pred_energy= (pred_cons_student+_b[happiness:_cons])+(pred_slope_student+_b[happiness:energylevel])*energylevel //finish modelprediction by combining coefficients with estimations, a bit more complex than in the random intercept model
 scatter happiness pred_energy energylevel, by(student,legend(off)) jitter(2) connect(. l) ytitle("Happiness") //make graph of both data and model prediction
-drop pred* 										
+drop pred_energy 										
 twoway  (rspike zero pred_slope_student student, horizontal) (scatter student pred_slope_student, msize(1) mlabsize(1) mlabposition(0)) if time==1, xtitle("Deviation from fixed slope") legend(off)
 
 gen pred_energy= (pred_cons_student+_b[happiness:_cons])+(pred_slope_student+_b[happiness:energylevel])*energylevel //finish modelprediction by combining coefficients with estimations, a bit more complex than in the random intercept model
@@ -256,16 +256,16 @@ gen Happy_CMC = happiness - Happy_ClusterMean
 
 
 //center cluster mean scores by extracting grand mean from each students cluster mean
-gen Sleepiness_ClusterMean_centered = Sleepiness_ClusterMean-Sleepiness_GrandMean
+//gen Sleepiness_ClusterMean_centered = Sleepiness_ClusterMean-Sleepiness_GrandMean
 gen Energy_ClusterMean_centered = Energy_ClusterMean-Energy_GrandMean
-gen Stress_ClusterMean_centered = Stress_ClusterMean-Stress_GrandMean
+//gen Stress_ClusterMean_centered = Stress_ClusterMean-Stress_GrandMean
 gen Happy_ClusterMean_centered = Happy_ClusterMean-Happy_GrandMean
-gen Motivation_ClusterMean_centered = Motivation_ClusterMean-Motivation_GrandMean
-
+//gen Motivation_ClusterMean_centered = Motivation_ClusterMean-Motivation_GrandMean
+/*
 mixed Happy Stress_CMC Stress_ClusterMean_centered || student: || day:			//random intercepts for student and day (nested in student)
 predict residuals_F, res	//store residuals
 swilk residuals_F			//shapiro-wilk test to check normality of residuals
-
+*/
 
 mixed happiness Energy_CMC Energy_ClusterMean_centered || student: || day:			//random intercepts for student and day (nested in student). p<0.05
 predict residuals_F, res	
@@ -356,11 +356,11 @@ lrtest CA CB //Neither model is better than one another.
 
 
 
-
+/*
 mixed Happy Stress_CMC Stress_ClusterMean_centered|| student:Stress_CMC || day:	//random intercepts + random slope (at participant level --> to what extent do the slopes vary across participants?)
 predict residuals_G, res	//store residuals
 swilk residuals_G			//shapiro-wilk test to check normality of residuals
-// Not sure if any of this makes sense
+// Not sure if any of this makes sense I think this is not necessary for our analysis right?, were mostly focussing on happiness and energylevel
 
 
 
